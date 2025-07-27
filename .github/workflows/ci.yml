@@ -1,0 +1,38 @@
+name: Monorepo CI Pipeline
+
+on:
+    push:
+        branches: [ "main" ]
+    pull_request:
+        branches: [ "main" ]
+
+jobs:
+    test-api-gateway:
+        name: Test API Gateway
+        if: |
+            github.event_name == 'push' || 
+            (github.event_name == 'pull_request' && 
+            (contains(join(github.event.pull_request.changed_files, ' '), 'apps/api-gateway/') || 
+             contains(join(github.event.pull_request.changed_files, ' '), 'libs/')))
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20.x'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run linter
+              run: npm run lint api-gateway
+
+            - name: Run unit & integration tests
+              run: npm test api-gateway
+
+            - name: Run end-to-end tests
+              run: npm run test:e2e api-gateway
