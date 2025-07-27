@@ -15,8 +15,8 @@ describe('ApiGatewayController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(apiGatewayController.getHello()).toBe('Hello World!');
+    it('should return "Hello World! How Are You?"', () => {
+      expect(apiGatewayController.getHello()).toBe('Hello World! How Are You?');
     });
   });
 });
