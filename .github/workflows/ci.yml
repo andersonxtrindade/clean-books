@@ -7,13 +7,23 @@ on:
         branches: [ "main" ]
 
 jobs:
+    filter:
+        runs-on: ubuntu-latest
+        outputs:
+            api_gateway_changed: ${{ steps.filter.outputs.api_gateway }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                filters: |
+                    api_gateway:
+                        - 'apps/api-gateway/**'
+                        - 'libs/**'
+
     test-api-gateway:
-        name: Test API Gateway
-        if: |
-            github.event_name == 'push' || 
-            (github.event_name == 'pull_request' && 
-            (contains(join(github.event.pull_request.changed_files, ' '), 'apps/api-gateway/') || 
-             contains(join(github.event.pull_request.changed_files, ' '), 'libs/')))
+        needs: filter
+        if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && needs.filter.outputs.api_gateway == 'true') }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
@@ -22,7 +32,7 @@ jobs:
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: '20.x'
+                  node-version: '22.x'
                   cache: 'npm'
 
             - name: Install dependencies
