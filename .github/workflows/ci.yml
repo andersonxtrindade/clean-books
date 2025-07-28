@@ -36,8 +36,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run linter
-        run: npm run lint:api-gateway
+        run: npm run lint -- 'apps/api-gateway/**/*.ts'
       - name: Run unit & integration tests
-        run: npm test api-gateway
+        run: npm run test -- 'apps/api-gateway'
       - name: Run end-to-end tests
-        run: npm run test:e2e api-gateway
+        run: npm run test:e2e:api-gateway
