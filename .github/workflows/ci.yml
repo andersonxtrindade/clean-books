@@ -1,0 +1,43 @@
+name: Monorepo CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  filter:
+    runs-on: ubuntu-latest
+    outputs:
+      api_gateway: ${{ steps.filter.outputs.api_gateway }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            api_gateway:
+              - 'apps/api-gateway/**'
+              - 'libs/**'
+
+  test-api-gateway:
+    needs: filter
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && needs.filter.outputs.api_gateway == 'true') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run linter
+        run: npm run lint -- 'apps/api-gateway/**/*.ts'
+      - name: Run unit & integration tests
+        run: npm run test -- 'apps/api-gateway'
+      - name: Run end-to-end tests
+        run: npm run test:e2e:api-gateway
